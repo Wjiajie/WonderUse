@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import "../styles/skeuomorphic-variants.css";
 import "../styles/animations.css";
 import "../styles/skeuomorphic.css";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 
 const playfair = Playfair_Display({ 
   subsets: ["latin"],
@@ -33,9 +34,11 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className={`${playfair.variable} ${lora.variable} ${caveat.variable}`}>
-        <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-          {children}
-        </main>
+        <ToastProvider>
+          <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            {children}
+          </main>
+        </ToastProvider>
       </body>
     </html>
   );

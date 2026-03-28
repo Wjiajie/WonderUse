@@ -152,3 +152,31 @@ a {
   pointer-events: none;
   animation: sparkle-fall 0.8s var(--ease-bounce) forwards;
 }
+
+/* ══ 铜质 Focus 轮廓 ══ */
+:focus-visible {
+  outline: 2px solid var(--color-brass);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 4px rgba(184,134,11,0.2);
+}
+
+.texture-parchment:focus-visible {
+  outline: none;
+  border-color: var(--color-brass);
+  box-shadow: 0 0 0 3px rgba(184,134,11,0.2), var(--shadow-inset);
+}
+
+/* ══ prefers-reduced-motion ══ */
+@media (prefers-reduced-motion: reduce) {
+  .anim-breathe,
+  .anim-jump,
+  .anim-enter,
+  .anim-peek,
+  .anim-fade-up,
+  .anim-card-pop,
+  .skeleton {
+    animation: none !important;
+    transition: none !important;
+  }
+}

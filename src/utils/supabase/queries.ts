@@ -1,5 +1,8 @@
 import { createClient } from './client';
+import { SupabaseClient } from '@supabase/supabase-js';
 
+// NOTE: This module-level client is fine for browser-only usage.
+// Server components should use the server client from ./server instead.
 const supabase = createClient();
 
 // --- Profiles ---
@@ -43,18 +46,49 @@ export async function addProduct(product: {
   return data;
 }
 
+export async function deleteProduct(productId: string) {
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .eq('id', productId);
+  if (error) throw error;
+}
+
 // --- Praise Entries ---
 export async function addPraise(entry: {
   user_id: string;
   product_id: string;
   content: string;
-}) {
-  const { data, error } = await supabase
+  mood?: string;
+  prompt_used?: string;
+}, client?: SupabaseClient) {
+  const db = client ?? supabase;
+  const { data, error } = await db
     .from('praise_entries')
     .insert(entry)
     .select()
     .single();
   if (error) throw error;
+  return data;
+}
+
+/**
+ * Get today's praise entry for the user (UTC date).
+ * Returns null if not yet praised today.
+ */
+export async function getTodayPraise(userId: string) {
+  const todayStart = new Date();
+  todayStart.setUTCHours(0, 0, 0, 0);
+
+  const { data } = await supabase
+    .from('praise_entries')
+    .select('*, products(name, category)')
+    .eq('user_id', userId)
+    .gte('created_at', todayStart.toISOString())
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   return data;
 }
 
@@ -70,17 +104,18 @@ export async function getStreak(userId: string) {
 
 export async function getUserAchievements(userId: string) {
   const { data, error } = await supabase
-    .from('user_achievements')
-    .select(`
-      unlocked_at,
-      achievements (
-        name,
-        description,
-        icon_url,
-        type
-      )
-    `)
-    .eq('user_id', userId);
+    .from('achievements')
+    .select('*')
+    .eq('user_id', userId)
+    .order('unlocked_at', { ascending: true });
   if (error) throw error;
-  return data;
+  return data ?? [];
+}
+
+export async function getPraiseCount(userId: string): Promise<number> {
+  const { count } = await supabase
+    .from('praise_entries')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId);
+  return count ?? 0;
 }
