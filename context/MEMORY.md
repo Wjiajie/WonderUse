@@ -16,14 +16,42 @@
 - CSS: Custom skeuomorphic, no Tailwind, no component library
 - Mobile-first responsive design
 
-## Documents Created
-- docs/PRD.md — Full product requirements with acceptance criteria
-- docs/UIUX-DESIGN.md — Design system, tokens, component specs, MiaoWu character
-- docs/ARCHITECTURE.md — Database schema, API routes, project structure, deployment
-- README.md — Project overview and quick start
+## Sprint 1 Completion (2026-03-28)
+- **Status**: ✅ Skeleton delivered, core loop NOT closed
+- **Delivered**: Auth, Shelf (full CRUD), Login (high quality), 6 skeuomorphic components, MiaoWu 4-state sprite
+- **Not delivered**: Praise core logic, Achievements data, Product edit/delete, SpeechBubble, Toast system
+- **All 6 bugs fixed**: Auth guard, rate limit, wood.jpg 404, tab hitbox, add button, category constraint
+- **QA Score**: 94/100 (3rd round)
+- **Design Quality**: 8.6/10
+
+## Documents (docs/)
+- `PRD.md` — Full product requirements with acceptance criteria
+- `UIUX-DESIGN.md` — Design system, tokens, component specs, MiaoWu character
+- `UIUX-UNIMPLEMENTED.md` — Detailed specs for F2-F8 features not yet implemented
+- `ARCHITECTURE.md` — Database schema, API routes, project structure, deployment
+- `SPRINT_01_REVIEW.md` — Sprint 1 complete review with code analysis
+- `qa-screenshots/` — 6 QA evidence screenshots
 
 ## Architecture Notes
 - Supabase triggers auto-create profile+streak on user signup
 - Supabase triggers auto-increment love_score on praise entry
 - RLS policies ensure user data isolation
 - Image upload: compress client-side → Supabase Storage → signed URL
+- Auth guard: server-side in (main)/layout.tsx, async cookies()
+
+## Technical Debt
+- `queries.ts` has 6 helper methods but NO page uses them (shelf/login call supabase directly)
+- Excessive inline styles in shelf/page.tsx (562 lines)
+- 4 duplicate miaowu image files in public/miaowu/
+- Supabase client instantiated at module top-level in queries.ts (SSR risk)
+
+## Sprint 2 Focus
+🎯 Close the "Praise" core loop:
+1. /praise full implementation (product select + guided questions + mood + submit)
+2. praise_entries → love_score +1 → streak update
+3. /achievements real data
+4. Toast notification system
+5. SpeechBubble component
+
+## ⚠️ Production Checklist
+- Re-enable Supabase Email Confirmation before production deploy
