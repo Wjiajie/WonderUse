@@ -44,7 +44,7 @@ export default function PraisePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [guideQuestion, setGuideQuestion] = useState('');
-  const [mood, setMood] = useState<Mood | null>(null);
+  const [mood, setMood] = useState<Mood>('happy'); // default to happy, user can change
   const [content, setContent] = useState('');
   const [catState, setCatState] = useState<'idle' | 'happy' | 'curious' | 'surprised'>('idle');
   const [catSpeech, setCatSpeech] = useState('');
@@ -115,7 +115,7 @@ export default function PraisePage() {
         user_id: user.id,
         product_id: selectedProduct.id,
         content: content.trim(),
-        mood: mood ?? undefined,
+        mood: mood,
         prompt_used: guideQuestion,
       });
 
@@ -249,7 +249,7 @@ export default function PraisePage() {
                   // Allow praising another item today
                   setTodayEntry(null);
                   setContent('');
-                  setMood(null);
+                  setMood('happy');
                   setPageState(products.length > 0 ? 'idle' : 'no_products');
                   setCatSpeech('');
                 }}>
@@ -351,10 +351,11 @@ export default function PraisePage() {
 
                 {/* 心情标签 */}
                 <div style={{ marginBottom: 'var(--space-4)' }}>
-                  <p style={{ fontFamily: 'var(--font-handwriting-stack)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)', fontSize: 'var(--text-sm)' }}>
+                  <p style={{ fontFamily: 'var(--font-handwriting-stack)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)', fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     此刻的心情
+                    <span style={{ color: 'var(--color-gold-readable)', fontSize: 'var(--text-xs)' }}>（点击选择）</span>
                   </p>
-                  <MoodPicker value={mood} onChange={setMood} />
+                  <MoodPicker value={mood || 'happy'} onChange={setMood} />
                 </div>
 
                 {/* 文本输入 */}
