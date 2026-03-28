@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap');
+
+:root {
+  /* 主色调 (Warm Amber) */
+  --color-primary: #D4A574;
+  --color-primary-dark: #C4956A;
+  --color-primary-light: #E8C9A0;
+
+  /* 木质系 (Walnut) */
+  --color-wood-dark: #3E2723;
+  --color-wood-medium: #5D4037;
+  --color-wood-light: #8D6E63;
+
+  /* 金属系 (Brass) */
+  --color-brass: #B8860B;
+  --color-gold: #DAA520;
+  --color-bronze: #CD7F32;
+
+  /* 背景系 (Parchment) */
+  --color-cream: #FFF8E7;
+  --color-parchment: #F5E6CC;
+  --color-linen: #FAF0E6;
+
+  /* 猫咪系 */
+  --color-cat-silver: #A8A8A8;
+  --color-cat-eye: #7CB342;
+
+  /* 文字色 */
+  --color-text-primary: #2C1810;
+  --color-text-secondary: #4A3728;
+  --color-text-muted: #8D6E63;
+  --color-text-on-brass: #FFF8E7;
+
+  /* 热爱值等级色 */
+  --love-level-1: #87CEEB;   /* 相识 - 浅蓝 */
+  --love-level-2: #7CB342;   /* 熟悉 - 绿色 */
+  --love-level-3: #DAA520;   /* 喜欢 - 暖黄 */
+  --love-level-4: #E67E22;   /* 热爱 - 橙色 */
+  --love-level-5: #C0392B;   /* 挚爱 - 红色 */
+
+  /* 字体系统 */
+  --font-heading: 'Noto Serif SC', 'Playfair Display', Georgia, serif;
+  --font-body: 'Noto Sans SC', 'Inter', -apple-system, sans-serif;
+  --font-handwriting: 'Caveat', cursive; /* Used Google Fonts Caveat instead of LXGW since it's hard to load */
+
+  /* 文字排版 */
+  --text-xs: 0.75rem; 
+  --text-sm: 0.875rem; 
+  --text-base: 1rem;
+  --text-lg: 1.125rem; 
+  --text-xl: 1.25rem; 
+  --text-2xl: 1.5rem; 
+  --text-3xl: 1.875rem;
+
+  /* 间距 & 圆角 */
+  --space-1: 0.25rem; 
+  --space-2: 0.5rem; 
+  --space-3: 0.75rem; 
+  --space-4: 1rem;
+  --space-6: 1.5rem; 
+  --space-8: 2rem; 
+  --space-10: 2.5rem; 
+  --space-12: 3rem;
+  
+  --radius-sm: 4px; 
+  --radius-md: 8px; 
+  --radius-lg: 12px; 
+  --radius-xl: 16px; 
+  --radius-full: 9999px;
+
+  /* 拟物化阴影系统 */
+  --shadow-raised: 0 2px 4px rgba(62,39,35,.15), 0 4px 8px rgba(62,39,35,.1), 0 8px 16px rgba(62,39,35,.05);
+  --shadow-pressed: inset 0 2px 4px rgba(62,39,35,.2), 0 1px 2px rgba(62,39,35,.1);
+  --shadow-inset: inset 0 2px 6px rgba(62,39,35,.2), inset 0 1px 2px rgba(62,39,35,.15);
+  --shadow-hover: 0 4px 8px rgba(62,39,35,.2), 0 8px 16px rgba(62,39,35,.12), 0 12px 24px rgba(62,39,35,.06);
+  --shadow-shelf: 0 4px 0 var(--color-wood-dark), 0 6px 12px rgba(62,39,35,.3);
+  --shadow-glass-inner: inset 0 -2px 4px rgba(255,255,255,.3), inset 0 2px 4px rgba(62,39,35,.1);
+  
+  /* 动画缓动函数 */
+  --ease-bounce: cubic-bezier(0.34,1.56,0.64,1);
+  --ease-smooth: cubic-bezier(0.4,0,0.2,1);
+  --duration-fast: 150ms; 
+  --duration-normal: 300ms; 
+  --duration-slow: 500ms;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-parchment);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-wood-dark);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

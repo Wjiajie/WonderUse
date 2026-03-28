@@ -1,0 +1,40 @@
+/* 木纹 */
+.texture-wood {
+  background-color: var(--color-wood-medium);
+  background-image: 
+    repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0,0,0,.03) 20px, rgba(0,0,0,.03) 21px),
+    repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(255,255,255,.02) 4px, rgba(255,255,255,.02) 5px);
+}
+
+/* 皮革 */
+.texture-leather {
+  background-color: var(--color-primary-dark);
+  background-image: radial-gradient(ellipse at 30% 50%, rgba(255,255,255,.05) 0%, transparent 70%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.15), inset 0 -1px 0 rgba(0,0,0,.1), var(--shadow-raised);
+}
+
+/* 黄铜 */
+.texture-brass {
+  background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-brass) 30%, var(--color-bronze) 60%, var(--color-brass) 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 -1px 0 rgba(0,0,0,.2), 0 2px 4px rgba(62,39,35,.3);
+  color: var(--color-text-on-brass);
+}
+
+/* 玻璃 */
+.texture-glass {
+  background: linear-gradient(180deg, rgba(255,255,255,.4) 0%, rgba(255,255,255,.1) 40%, rgba(255,255,255,.05) 100%);
+  box-shadow: var(--shadow-glass-inner);
+  border: 1px solid rgba(255,255,255,.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* 羊皮纸 */
+.texture-parchment {
+  background-color: var(--color-parchment);
+  background-image: 
+    radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 100%),
+    linear-gradient(180deg, rgba(0,0,0,0.02) 0%, transparent 100%);
+  box-shadow: var(--shadow-inset);
+  color: var(--color-text-secondary);
+}

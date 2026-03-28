@@ -1,0 +1,53 @@
+@import './textures.css';
+
+/* Brass Button styles */
+.btn-brass {
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-heading);
+  font-weight: bold;
+  font-size: var(--text-base);
+  text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+  transition: transform var(--duration-fast) var(--ease-smooth), box-shadow var(--duration-fast) var(--ease-smooth);
+}
+
+.btn-brass:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.btn-brass:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-pressed) !important;
+}
+
+.btn-brass:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Leather Card styles */
+.leather-card {
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  color: var(--color-cream);
+}
+
+.leather-card.interactive {
+  cursor: pointer;
+  transition: transform var(--duration-normal) var(--ease-bounce), box-shadow var(--duration-normal) var(--ease-smooth);
+}
+
+.leather-card.interactive:hover {
+  transform: translateY(-4px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.15), inset 0 -1px 0 rgba(0,0,0,.1), var(--shadow-hover);
+}
+
+/* Hand-written text for praise */
+.font-handwriting {
+  font-family: var(--font-handwriting);
+  letter-spacing: 0.5px;
+}
