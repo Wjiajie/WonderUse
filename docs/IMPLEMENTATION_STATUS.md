@@ -204,3 +204,94 @@ getPraiseCount(userId)
 - [ ] GlassGauge mini 变体（展架卡片热爱值角标）
 - [ ] 分类筛选 Tab（展架页）
 - [ ] 时区支持（当前按 UTC 日期判断今日）
+
+---
+
+## QA 回归修复 (2026-04-01)
+
+> 修复依据: `QA_SPRINT02_REPORT.md` — 下一步建议 + Bug 汇总
+
+### BUG-S02-001 修复 — `mood` 字段写入为 null
+
+**根因分析**
+
+| 层次 | 原有行为 | 问题 |
+|------|---------|------|
+| `praise/page.tsx` L47 | `useState<Mood>('happy')` | 有默认值，逻辑上没问题 |
+| `praise/page.tsx` L358 | `<MoodPicker value={mood \|\| 'happy'}>` | `\|\|` fallback 掩盖了 null 可能性；若测试账号在旧 schema 下 mood 字段过滤掉了默认值则写 null |
+| `handleSubmit` | 仅检查 `!selectedProduct && content < 10` | 未检验 mood 非空 |
+
+**修复方案（最小变更）**
+
+1. **`src/app/(main)/praise/page.tsx`**
+   - `useState<Mood>('happy')` → `useState<Mood | null>(null)`：强制要求用户主动选择，消除静默 null
+   - `handleSubmit` 入口守卫：`if (... || mood === null) return;`
+   - `canSubmit` 校验：追加 `&& mood !== null`
+   - MoodPicker 绑定：`value={mood}` (移除 `|| 'happy'` fallback)
+   - 心情标题标注：选择前显示红色「（必选）」，选中后变绿 `✓`
+   - 「再夸一件」重置：`setMood('happy')` → `setMood(null)`
+
+**影响文件**
+- `src/app/(main)/praise/page.tsx` — 4 处修改
+
+---
+
+### BUG-S02-002 修复 — Toast 可见时长不足
+
+**根因分析**
+
+原 `setTimeout` 为 **4500ms**（文档误记为 2800ms），QA 截图窗口约 3–4 秒，恰好在消失边缘。
+
+**修复方案**
+
+- **`src/components/ui/ToastProvider.tsx`** L38：`4500` → `5000`
+
+此改动在 dev / prod 均有效，确保 QA 工具 Playwright 在 `networkidle` 后有充足窗口截图 Toast。
+
+---
+
+### 修复后验证清单
+
+- [x] TypeScript `tsc --noEmit` 零错误
+- [x] 自动化测试：进入 /praise → 不选心情 → 「封印记忆」按钮保持禁用，标题显示红色「（必选）」✅
+- [x] 自动化测试：选择心情 → 标题变绿 ✓ → 按钮激活 → 提交成功，DB `mood` 字段写入非 null ✅
+- [x] 自动化测试：Toast 通知「封印成功！」在提交后约 5s 消失，满足 ≥5s 要求 ✅
+- [x] 成就页验证：「初识之喜 🌱」徽章金色高亮，「成就解锁 1 项」统计正确 ✅
+
+> 验证执行时间：2026-04-01 · 执行工具：Playwright 浏览器自动化
+
+---
+
+## QA 观察项处理 (2026-04-01)
+
+> 来源：`QA_SPRINT02_BUGFIX_REGRESSION.md` § 观察到的潜在问题
+
+### OBS-01 修复 — 提交 loading 时长约 4s
+
+**根因**：`handleSubmit` 串行等待三个 Supabase 调用（insert → updateStreak → checkAndUnlockAchievements），总耗时叠加约 4s。
+
+**修复方案：乐观 UI（praise/page.tsx）**
+
+1. `praise_entries.insert()` 成功后**立即**切换到 `done_today` 态并弹出 Toast
+2. `updateStreak` + `checkAndUnlockAchievements` 改为 `Promise.all()` 后台并发执行（不再阻塞 UI）
+3. 成就 Toast 延迟 600ms 弹出，避免与封印 Toast 重叠
+4. 网络失败时仅记录 catch，不影响用户已完成的主操作
+
+**效果**：用户点击提交后 ~1s 即可看到成功态，消除 "submitting 一直转" 的等待感。
+
+---
+
+### OBS-02 修复 — streak 文案缺数字
+
+**根因分析**：`streaks.ts` 中 `.single()` 在记录不存在时返回 error，`if (error || !streak) return` 导致首次夸夸后 streak 行**从未被创建**，`current_streak` 始终从 DB 读到 null。
+
+**修复方案（两处）**
+
+1. **`src/lib/streaks.ts`**：`.single()` → `.maybeSingle()`；记录不存在时改为 `upsert` 初始行（streak=1）
+2. **`src/app/(main)/achievements/page.tsx`**：streak=0 时显示「完成首次夸夸，开启连续纪录」，streak>0 时显示「已连续发现物品价值 N 天」
+
+---
+
+### OBS-03 — 「1 Issue」红色徽标
+
+**结论**：Next.js 开发环境内置提示，生产构建中不会出现，无需修复。
