@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/utils/supabase/client';
-import { getTodayPraise } from '@/utils/supabase/queries';
 import { updateStreak } from '@/lib/streaks';
 import { checkAndUnlockAchievements } from '@/lib/achievements';
 import { useToast } from '@/components/ui/ToastProvider';
@@ -14,6 +13,7 @@ import { MoodPicker, type Mood } from '@/components/skeuomorphic/MoodPicker';
 import { LeatherCard } from '@/components/skeuomorphic/LeatherCard';
 import { BrassButton } from '@/components/skeuomorphic/BrassButton';
 import { ParchmentTextArea } from '@/components/skeuomorphic/ParchmentInput';
+import { TreasureBox } from '@/components/skeuomorphic/TreasureBox';
 
 type PraiseState = 'loading' | 'no_products' | 'idle' | 'writing' | 'submitting' | 'done_today';
 
@@ -49,6 +49,7 @@ export default function PraisePage() {
   const [catState, setCatState] = useState<'idle' | 'happy' | 'curious' | 'surprised'>('idle');
   const [catSpeech, setCatSpeech] = useState('');
   const [todayEntry, setTodayEntry] = useState<any>(null);
+  const [showTreasureBox, setShowTreasureBox] = useState(false);
 
   const randomQuestion = useCallback(() => {
     return GUIDE_QUESTIONS[Math.floor(Math.random() * GUIDE_QUESTIONS.length)];
@@ -59,26 +60,35 @@ export default function PraisePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push('/login'); return; }
 
-      const [prods, today] = await Promise.all([
+      const todayStart = new Date();
+      todayStart.setUTCHours(0, 0, 0, 0);
+
+      const [prods, todayPraises] = await Promise.all([
         supabase.from('products').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-        getTodayPraise(user.id),
+        supabase.from('praise_entries')
+          .select('product_id')
+          .eq('user_id', user.id)
+          .gte('created_at', todayStart.toISOString()),
       ]);
 
-      if (today) {
-        setTodayEntry(today);
+      const praisedTodayIds = new Set((todayPraises.data ?? []).map((p: { product_id: string }) => p.product_id));
+      const unpraised = (prods.data ?? []).filter((p: Product) => !praisedTodayIds.has(p.id));
+
+      if (unpraised.length === 0) {
+        setProducts(prods.data ?? []);
+        const todayEntry = todayPraises.data?.[0]
+          ? { content: '', products: prods.data?.find((p: Product) => p.id === todayPraises.data?.[0].product_id) }
+          : null;
+        setTodayEntry(todayEntry);
         setPageState('done_today');
         return;
       }
 
       const productList = prods.data ?? [];
-      if (productList.length === 0) {
-        setPageState('no_products');
-        return;
-      }
-
       setProducts(productList);
-      // 随机选一件
-      const randomPick = productList[Math.floor(Math.random() * productList.length)];
+
+      // 优先从未夸赞过的产品中随机选一件
+      const randomPick = unpraised[Math.floor(Math.random() * unpraised.length)];
       setSelectedProduct(randomPick);
       setGuideQuestion(randomQuestion());
       setPageState('idle');
@@ -89,6 +99,12 @@ export default function PraisePage() {
   }, []);
 
   const handleStartWriting = () => {
+    // 百宝箱动画：动画完成后再切到写作表单
+    setShowTreasureBox(true);
+  };
+
+  const handleTreasureBoxComplete = () => {
+    setShowTreasureBox(false);
     setPageState('writing');
     setCatState('curious');
     setCatSpeech('认真想想，说说它的闪光点吧～');
@@ -167,6 +183,18 @@ export default function PraisePage() {
 
   return (
     <div style={{ padding: 'var(--space-4)', paddingBottom: '90px', minHeight: '100vh' }}>
+      {/* 百宝箱动画 */}
+      <AnimatePresence>
+        {showTreasureBox && selectedProduct && (
+          <TreasureBox
+            isOpen={showTreasureBox}
+            productName={selectedProduct.name}
+            productImage={selectedProduct.image_url}
+            onComplete={handleTreasureBoxComplete}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <header style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
         <div style={{ position: 'relative', flexShrink: 0 }}>

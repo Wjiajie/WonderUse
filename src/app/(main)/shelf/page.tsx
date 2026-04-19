@@ -10,6 +10,8 @@ import { AddProductModal } from '@/components/skeuomorphic/AddProductModal';
 import { createClient } from '@/utils/supabase/client';
 import { uploadProductImage } from '@/utils/supabase/storage';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '@/components/ui/ToastProvider';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
 
 interface Product {
   id: string;
@@ -98,15 +100,21 @@ export default function ShelfPage() {
   const [showSparkle, setShowSparkle] = useState(false);
   const [newItemId, setNewItemId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('all');
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { showToast } = useToast();
+  const supabase = createClient();
 
   const filteredProducts = products.filter(p => activeTab === 'all' || p.category === activeTab);
-  const supabase = createClient();
 
   useEffect(() => {
     async function loadData() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push('/login'); return; }
+
+      setUserEmail(user.email ?? '');
 
       const { data: prods } = await supabase
         .from('products')
@@ -126,6 +134,26 @@ export default function ShelfPage() {
     loadData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Close menu on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [userMenuOpen]);
+
+  const handleLogout = async () => {
+    setUserMenuOpen(false);
+    await supabase.auth.signOut();
+    showToast('已退出登录', 'success');
+    router.push('/login');
+  };
 
   const handleAddItemSubmit = async (data: {
     name: string;
@@ -171,38 +199,133 @@ export default function ShelfPage() {
     }
   };
 
+  const refreshData = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const [{ data: prods }, { data: streakData }] = await Promise.all([
+      supabase.from('products').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+      supabase.from('streaks').select('current_streak').eq('user_id', user.id).single(),
+    ]);
+    setProducts(prods || []);
+    setStreak(streakData?.current_streak ?? 0);
+  }, [supabase]);
+
   return (
-    <div style={{ padding: 'var(--space-4)', paddingBottom: '90px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', paddingBottom: '70px' }}>
       {/* 粒子效果层 */}
       {showSparkle && (
         <SparkleEffect onComplete={() => setShowSparkle(false)} />
       )}
 
-      {/* Header */}
-      <header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 'var(--space-4)',
-      }}>
-        <h1 style={{
-          fontFamily: 'var(--font-heading)',
-          color: 'var(--color-wood-dark)',
-          margin: 0,
-          fontSize: 'var(--text-2xl)',
-          letterSpacing: '0.05em',
-        }}>
-          我的展架
-        </h1>
+      <PullToRefresh onRefresh={refreshData} threshold={70}>
+        <div style={{ padding: 'var(--space-4)' }}>
+          {/* Header */}
+          <header style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 'var(--space-4)',
+          }}>
+            <h1 style={{
+              fontFamily: 'var(--font-heading)',
+              color: 'var(--color-wood-dark)',
+              margin: 0,
+              fontSize: 'var(--text-2xl)',
+              letterSpacing: '0.05em',
+            }}>
+              我的展架
+            </h1>
 
-        {/* 连续打卡徽章 */}
-        <div
-          className="streak-badge"
-          aria-label={`连续打卡 ${streak} 天`}
-          title="连续打卡天数"
-        >
-          <span>🔥</span>
-          <span>{streak} 天</span>
+        {/* 右侧工具栏 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          {/* 连续打卡徽章 */}
+          <div
+            className="streak-badge"
+            aria-label={`连续打卡 ${streak} 天`}
+            title="连续打卡天数"
+          >
+            <span>🔥</span>
+            <span>{streak} 天</span>
+          </div>
+
+          {/* 用户下拉菜单 */}
+          <div ref={menuRef} style={{ position: 'relative' }}>
+            <button
+              onClick={() => setUserMenuOpen(v => !v)}
+              aria-label="用户菜单"
+              aria-expanded={userMenuOpen}
+              aria-haspopup="menu"
+              style={{
+                background: 'rgba(218,165,32,0.15)',
+                border: '1px solid rgba(218,165,32,0.3)',
+                borderRadius: 'var(--radius-full)',
+                padding: '6px 10px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                color: 'var(--color-brass)',
+                fontSize: 'var(--text-xs)',
+                fontFamily: 'var(--font-heading)',
+                transition: 'all 0.2s',
+              }}
+            >
+              <span style={{ maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {userEmail.split('@')[0]}
+              </span>
+              <span style={{ fontSize: '10px', transition: 'transform 0.2s', transform: userMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▾</span>
+            </button>
+
+            <AnimatePresence>
+              {userMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.96 }}
+                  transition={{ duration: 0.15 }}
+                  role="menu"
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 6px)',
+                    right: 0,
+                    minWidth: '140px',
+                    background: 'var(--color-parchment)',
+                    border: '1px solid rgba(218,165,32,0.3)',
+                    borderRadius: 'var(--radius-md)',
+                    boxShadow: 'var(--shadow-raised)',
+                    overflow: 'hidden',
+                    zIndex: 200,
+                  }}
+                >
+                  <button
+                    role="menuitem"
+                    onClick={handleLogout}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      color: 'var(--color-text-muted)',
+                      fontSize: 'var(--text-sm)',
+                      fontFamily: 'var(--font-handwriting-stack)',
+                      textAlign: 'left',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(192,57,43,0.08)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <span>🚪</span>
+                    <span>退出登录</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </header>
 
@@ -279,12 +402,14 @@ export default function ShelfPage() {
            </div>
         )}
       </section>
+        </div>
+      </PullToRefresh>
 
       {/* 添加物品模态框 */}
-      <AddProductModal 
-        isOpen={showAddModal} 
-        onClose={() => setShowAddModal(false)} 
-        onSubmit={handleAddItemSubmit} 
+      <AddProductModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddItemSubmit}
       />
     </div>
   );

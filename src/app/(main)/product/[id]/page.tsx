@@ -102,13 +102,13 @@ export default function ProductDetailPage() {
         newImageUrl = null;
       }
 
-      const updates = {
+      const updates: Parameters<typeof updateProduct>[1] = {
         name: data.name,
         category: data.category,
-        brand: data.brand || null,
-        description: data.description || null,
-        purchased_at: data.purchased_at || null,
-        image_url: newImageUrl,
+        brand: (data.brand as string) || undefined,
+        description: (data.description as string) || undefined,
+        purchased_at: (data.purchased_at as string) || undefined,
+        image_url: newImageUrl ?? undefined,
       };
 
       const updatedProduct = await updateProduct(product.id, updates);
