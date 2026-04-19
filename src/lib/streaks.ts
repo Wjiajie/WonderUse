@@ -4,19 +4,31 @@ import { SupabaseClient } from '@supabase/supabase-js';
  * Update streak after a praise submission.
  * - Same day as last_praise_date: no-op (already counted)
  * - Yesterday: streak + 1
- * - Before yesterday: reset to 1
+ * - Before yesterday or no record: reset/init to 1
  * All date comparisons use UTC dates.
+ *
+ * Uses upsert to handle the case where the streaks row doesn't exist yet,
+ * which previously caused a silent early return (OBS-02 root cause fix).
  */
 export async function updateStreak(userId: string, supabase: SupabaseClient): Promise<void> {
   const todayUTC = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
 
-  const { data: streak, error } = await supabase
+  const { data: streak } = await supabase
     .from('streaks')
     .select('*')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle(); // returns null (not error) when row doesn't exist
 
-  if (error || !streak) return;
+  // No record yet → create initial streak row
+  if (!streak) {
+    await supabase.from('streaks').upsert({
+      user_id: userId,
+      current_streak: 1,
+      longest_streak: 1,
+      last_praise_date: todayUTC,
+    }, { onConflict: 'user_id' });
+    return;
+  }
 
   // Already counted today
   if (streak.last_praise_date === todayUTC) return;

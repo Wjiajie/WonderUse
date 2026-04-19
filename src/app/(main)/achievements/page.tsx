@@ -99,7 +99,10 @@ export default function AchievementsPage() {
                 打卡连续纪元
               </h3>
               <p style={{ margin: '4px 0 0 0', color: 'rgba(240,221,184,0.7)', fontSize: 'var(--text-sm)' }}>
-                已连续发现物品价值 <strong style={{ color: 'var(--color-gold)' }}>{currentStreak}</strong> 天
+                {currentStreak > 0
+                  ? <>已连续发现物品价值 <strong style={{ color: 'var(--color-gold)' }}>{currentStreak}</strong> 天</>
+                  : <span style={{ color: 'rgba(240,221,184,0.5)' }}>完成首次夸夸，开启连续纪录</span>
+                }
               </p>
             </div>
           </div>

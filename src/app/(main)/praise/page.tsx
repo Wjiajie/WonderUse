@@ -44,7 +44,7 @@ export default function PraisePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [guideQuestion, setGuideQuestion] = useState('');
-  const [mood, setMood] = useState<Mood>('happy'); // default to happy, user can change
+  const [mood, setMood] = useState<Mood | null>(null); // null = not yet chosen; required before submit
   const [content, setContent] = useState('');
   const [catState, setCatState] = useState<'idle' | 'happy' | 'curious' | 'surprised'>('idle');
   const [catSpeech, setCatSpeech] = useState('');
@@ -103,47 +103,55 @@ export default function PraisePage() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedProduct || content.trim().length < 10) return;
+    if (!selectedProduct || content.trim().length < 10 || mood === null) return;
     setPageState('submitting');
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Snapshot values before any async ops
+    const productName = selectedProduct.name;
+    const praisePayload = {
+      user_id: user.id,
+      product_id: selectedProduct.id,
+      content: content.trim(),
+      mood: mood,
+      prompt_used: guideQuestion,
+    };
+
     try {
-      // 1. Insert praise entry
-      await supabase.from('praise_entries').insert({
-        user_id: user.id,
-        product_id: selectedProduct.id,
-        content: content.trim(),
-        mood: mood,
-        prompt_used: guideQuestion,
-      });
+      // 1. Insert praise entry (critical path — must succeed before advancing UI)
+      const { error: insertError } = await supabase.from('praise_entries').insert(praisePayload);
+      if (insertError) throw insertError;
 
-      // 2. Update streak
-      await updateStreak(user.id, supabase);
-
-      // 3. Check achievements
-      const newAchievements = await checkAndUnlockAchievements(user.id, supabase);
-
-      // 4. Toast feedback
-      showToast(`封印成功！「${selectedProduct.name}」热爱值 +1 ✦`, 'success');
-      for (const ach of newAchievements) {
-        showToast(`🏆 成就解锁：${ach.title}`, 'achievement');
-      }
-
-      // 5. Cat reaction
+      // 2. Optimistic UI: show success immediately, don't wait for streak/achievements
+      showToast(`封印成功！「${productName}」热爱值 +1 ✦`, 'success');
       setCatState('happy');
       setCatSpeech('已封入展架！喵~ 它一定很高兴被发现～');
-
       setPageState('done_today');
+
+      // 3. Background: streak + achievements (non-blocking)
+      Promise.all([
+        updateStreak(user.id, supabase),
+        checkAndUnlockAchievements(user.id, supabase),
+      ]).then(([, newAchievements]) => {
+        // Stagger achievement toasts so they don't collide with the success toast
+        newAchievements.forEach((ach, i) => {
+          setTimeout(() => showToast(`🏆 成就解锁：${ach.title}`, 'achievement'), 600 + i * 800);
+        });
+      }).catch(() => {
+        // Streak/achievement failure is non-critical, swallow silently
+      });
+
     } catch {
       showToast('出了点问题，请稍后再试', 'error');
       setPageState('writing');
     }
   };
 
+
   const charCount = content.trim().length;
-  const canSubmit = charCount >= 10 && !!selectedProduct;
+  const canSubmit = charCount >= 10 && !!selectedProduct && mood !== null;
 
   // ── 渲染各状态 ──
 
@@ -249,7 +257,7 @@ export default function PraisePage() {
                   // Allow praising another item today
                   setTodayEntry(null);
                   setContent('');
-                  setMood('happy');
+                  setMood(null);
                   setPageState(products.length > 0 ? 'idle' : 'no_products');
                   setCatSpeech('');
                 }}>
@@ -353,9 +361,12 @@ export default function PraisePage() {
                 <div style={{ marginBottom: 'var(--space-4)' }}>
                   <p style={{ fontFamily: 'var(--font-handwriting-stack)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)', fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     此刻的心情
-                    <span style={{ color: 'var(--color-gold-readable)', fontSize: 'var(--text-xs)' }}>（点击选择）</span>
+                    {mood === null
+                      ? <span style={{ color: '#C0392B', fontSize: 'var(--text-xs)', fontWeight: 600 }}>（必选）</span>
+                      : <span style={{ color: 'var(--color-cat-eye)', fontSize: 'var(--text-xs)' }}>✓</span>
+                    }
                   </p>
-                  <MoodPicker value={mood || 'happy'} onChange={setMood} />
+                  <MoodPicker value={mood} onChange={setMood} />
                 </div>
 
                 {/* 文本输入 */}

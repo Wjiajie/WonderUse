@@ -32,14 +32,31 @@ export async function addProduct(product: {
   name: string;
   category: string;
   description?: string;
-  purchase_date?: string;
-  purchase_price?: number;
-  condition?: string;
+  purchased_at?: string;
+  brand?: string;
   image_url?: string;
 }) {
   const { data, error } = await supabase
     .from('products')
     .insert(product)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateProduct(productId: string, updates: Partial<{
+  name: string;
+  category: string;
+  brand: string;
+  description: string;
+  purchased_at: string;
+  image_url: string;
+}>) {
+  const { data, error } = await supabase
+    .from('products')
+    .update(updates)
+    .eq('id', productId)
     .select()
     .single();
   if (error) throw error;

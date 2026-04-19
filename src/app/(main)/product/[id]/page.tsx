@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/utils/supabase/client';
-import { deleteProduct } from '@/utils/supabase/queries';
+import { deleteProduct, updateProduct } from '@/utils/supabase/queries';
+import { uploadProductImage, deleteProductImage } from '@/utils/supabase/storage';
 import { useToast } from '@/components/ui/ToastProvider';
 import { LeatherCard } from '@/components/skeuomorphic/LeatherCard';
 import { GlassGauge } from '@/components/skeuomorphic/GlassGauge';
 import { BrassButton } from '@/components/skeuomorphic/BrassButton';
+import { EditProductModal, EditProductSubmitData } from '@/components/skeuomorphic/EditProductModal';
 
 const MOOD_LABELS: Record<string, string> = {
   happy: '😊 开心',
@@ -27,6 +29,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -68,6 +71,62 @@ export default function ProductDetailPage() {
       setDeleting(false);
     }
   };
+
+  const handleEditSubmit = async (data: EditProductSubmitData) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      let newImageUrl = product.image_url;
+
+      if (data.imageFile) {
+        // Upload new image
+        newImageUrl = await uploadProductImage(user.id, data.imageFile);
+        // If there was an old image, delete it
+        if (product.image_url && product.image_url !== newImageUrl) {
+          try {
+            await deleteProductImage(product.image_url);
+          } catch (e) {
+            console.error('Failed to delete old image, continuing...', e);
+          }
+        }
+      } else if (data.isImageRemoved) {
+        // User cleared the image entirely
+        if (product.image_url) {
+          try {
+            await deleteProductImage(product.image_url);
+          } catch (e) {
+            console.error('Failed to delete old image, continuing...', e);
+          }
+        }
+        newImageUrl = null;
+      }
+
+      const updates = {
+        name: data.name,
+        category: data.category,
+        brand: data.brand || null,
+        description: data.description || null,
+        purchased_at: data.purchased_at || null,
+        image_url: newImageUrl,
+      };
+
+      const updatedProduct = await updateProduct(product.id, updates);
+      
+      // Update local state without reloading
+      setProduct((prev: any) => ({
+        ...prev,
+        ...updatedProduct
+      }));
+      
+      showToast('物品信息已更新', 'success');
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
 
   if (loading) {
     return (
@@ -115,22 +174,39 @@ export default function ProductDetailPage() {
         }}>
           {product.name}
         </h2>
-        <button
-          id="delete-product-btn"
-          onClick={() => setShowDeleteModal(true)}
-          title="移除此物品"
-          style={{
-            background: 'transparent', border: 'none', cursor: 'pointer',
-            color: 'var(--color-text-muted)', fontSize: '1.1rem',
-            padding: 'var(--space-1) var(--space-2)',
-            borderRadius: 'var(--radius-sm)',
-            transition: 'color 0.2s',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = '#C0392B')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
-        >
-          🗑
-        </button>
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          <button
+            onClick={() => setShowEditModal(true)}
+            title="修改物品信息"
+            style={{
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              color: 'var(--color-text-muted)', fontSize: '1.1rem',
+              padding: 'var(--space-1) var(--space-2)',
+              borderRadius: 'var(--radius-sm)',
+              transition: 'color 0.2s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-brass)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
+          >
+            ✎
+          </button>
+          <button
+            id="delete-product-btn"
+            onClick={() => setShowDeleteModal(true)}
+            title="移除此物品"
+            style={{
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              color: 'var(--color-text-muted)', fontSize: '1.1rem',
+              padding: 'var(--space-1) var(--space-2)',
+              borderRadius: 'var(--radius-sm)',
+              transition: 'color 0.2s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#C0392B')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
+          >
+            🗑
+          </button>
+        </div>
       </header>
 
       {/* 物品卡 */}
@@ -171,6 +247,19 @@ export default function ProductDetailPage() {
                 ? new Date(product.purchased_at).toLocaleDateString()
                 : new Date(product.created_at).toLocaleDateString()}
             </p>
+            {product.description && (
+              <div style={{ 
+                marginTop: 'var(--space-3)', 
+                padding: 'var(--space-2)', 
+                background: 'rgba(0,0,0,0.15)', 
+                borderRadius: 'var(--radius-sm)',
+                borderLeft: '2px solid rgba(218,165,32,0.4)'
+              }}>
+                <p style={{ margin: 0, color: 'rgba(240,221,184,0.9)', fontSize: 'var(--text-sm)', lineHeight: 1.5, fontFamily: 'var(--font-handwriting-stack)' }}>
+                  {product.description}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -358,6 +447,13 @@ export default function ProductDetailPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <EditProductModal
+        isOpen={showEditModal}
+        initialData={product}
+        onClose={() => setShowEditModal(false)}
+        onSubmit={handleEditSubmit}
+      />
     </div>
   );
 }
