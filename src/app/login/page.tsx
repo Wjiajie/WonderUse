@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { createBrowserClient } from '@supabase/ssr'
 import { LeatherCard } from '@/components/skeuomorphic/LeatherCard';
 import { ParchmentInput } from '@/components/skeuomorphic/ParchmentInput';
 import { BrassButton } from '@/components/skeuomorphic/BrassButton';
@@ -40,7 +40,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const handleAuth = async (isSignUp: boolean) => {
     setLoading(true);

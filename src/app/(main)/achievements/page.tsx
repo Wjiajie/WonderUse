@@ -55,7 +55,7 @@ export default function AchievementsPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: 'var(--space-4)', paddingTop: '40%', textAlign: 'center' }}>
+      <div style={{ paddingLeft: 'var(--space-4)', paddingRight: 'var(--space-4)', paddingBottom: 'var(--space-4)', paddingTop: '40%', textAlign: 'center' }}>
         <div className="skeleton" style={{ height: '120px', marginBottom: 'var(--space-4)' }} />
         <div className="skeleton" style={{ height: '200px' }} />
       </div>

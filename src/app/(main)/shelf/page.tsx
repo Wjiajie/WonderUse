@@ -186,8 +186,8 @@ export default function ShelfPage() {
       .single();
 
     if (error) {
-      console.error('添加物品失败:', error);
-      throw error;
+      console.error('添加物品失败详情:', error.message, error.details, error.hint, error);
+      throw new Error(`添加物品失败: ${error.message || JSON.stringify(error)}`);
     }
 
     if (insertedData) {

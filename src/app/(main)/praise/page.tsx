@@ -173,7 +173,7 @@ export default function PraisePage() {
 
   if (pageState === 'loading') {
     return (
-      <div style={{ padding: 'var(--space-4)', display: 'flex', justifyContent: 'center', paddingTop: '40%' }}>
+      <div style={{ paddingLeft: 'var(--space-4)', paddingRight: 'var(--space-4)', paddingBottom: 'var(--space-4)', paddingTop: '40%', textAlign: 'center', display: 'flex', justifyContent: 'center' }}>
         <span style={{ color: 'var(--color-brass)', fontFamily: 'var(--font-handwriting-stack)' }}>
           翻阅宝贝档案中...
         </span>

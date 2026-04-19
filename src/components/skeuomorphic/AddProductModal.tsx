@@ -4,6 +4,43 @@ import { ParchmentInput, ParchmentTextArea } from './ParchmentInput';
 import CategoryPicker, { CategoryId } from './CategoryPicker';
 import ImageUploader from './ImageUploader';
 import { BrassButton } from './BrassButton';
+import { LeatherCard } from './LeatherCard';
+
+const MagicalStepper = ({ currentStep, totalSteps }: { currentStep: number, totalSteps: number }) => {
+  return (
+    <div className="flex items-center justify-center space-x-6">
+      {Array.from({ length: totalSteps }).map((_, i) => {
+        const step = i + 1;
+        const isActive = step === currentStep;
+        const isPast = step < currentStep;
+        return (
+          <React.Fragment key={step}>
+            <div className="relative flex items-center justify-center">
+              <motion.div
+                initial={false}
+                animate={{
+                  boxShadow: isActive ? '0 0 15px rgba(218,165,32,0.8)' : 'none',
+                  borderColor: isActive || isPast ? '#DAA520' : 'rgba(240,226,200,0.2)',
+                  backgroundColor: isActive ? '#DAA520' : isPast ? '#B8860B' : 'transparent',
+                }}
+                className={`w-3 h-3 rounded-full border-2 z-10 ${isActive ? 'ring-4 ring-[#DAA520]/20 ring-offset-2 ring-offset-[#2C1A12]' : ''}`}
+              />
+            </div>
+            {step < totalSteps && (
+              <div className="w-16 h-[2px] bg-[rgba(240,226,200,0.1)] relative">
+                <motion.div 
+                  initial={false}
+                  animate={{ width: isPast ? '100%' : '0%' }}
+                  className="absolute left-0 top-0 h-full bg-gradient-to-r from-[#B8860B] to-[#DAA520]"
+                />
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -72,9 +109,9 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
         imageFile
       });
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('保存失败，请稍后再试');
+      alert(`保存失败: ${err.message || '请稍后再试'}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -95,12 +132,13 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-md texture-parchment rounded-xl shadow-2xl border-2 border-[#b8860b]/30 p-6 flex flex-col"
-            style={{ minHeight: '480px' }}
+            className="relative w-full max-w-2xl flex flex-col max-h-[90vh]"
+            style={{ minHeight: 'min(560px, 90vh)' }}
           >
-            <div className="flex justify-between items-center mb-6 border-b border-[#5d4037]/10 pb-4">
-              <h2 className="font-heading text-xl font-bold text-[#3e2723]">封入新珍爱之物</h2>
-              <span className="font-handwriting text-[#b8860b] text-sm">第 {step} 步 / 共 3 步</span>
+            <LeatherCard className="flex flex-col flex-1 p-6 sm:p-8 relative overflow-hidden w-full shadow-2xl border border-[rgba(184,134,11,0.3)]">
+            <div className="flex flex-col items-center justify-center mb-8 border-b border-[rgba(218,165,32,0.2)] pb-6 relative">
+              <h2 className="font-heading text-2xl font-bold text-[#F5C842] mb-6 tracking-widest" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 20px rgba(218,165,32,0.3)' }}>封入新珍爱之物</h2>
+              <MagicalStepper currentStep={step} totalSteps={3} />
             </div>
 
             <div className="flex-1 overflow-y-auto mb-6">
@@ -111,8 +149,8 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
                   exit={{ opacity: 0, x: 20 }}
                   className="space-y-6"
                 >
-                  <div className="space-y-2">
-                    <label className="block text-sm font-bold text-[#5d4037]/80">物品名称 *</label>
+                  <div className="space-y-3">
+                    <label className="block text-xs font-heading tracking-widest uppercase text-[rgba(218,165,32,0.8)]">物品名称</label>
                     <ParchmentInput
                       value={name}
                       onChange={e => setName(e.target.value)}
@@ -120,8 +158,8 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
                       autoFocus
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-bold text-[#5d4037]/80">分类 *</label>
+                  <div className="space-y-3">
+                    <label className="block text-xs font-heading tracking-widest uppercase text-[rgba(218,165,32,0.8)]">档案分类</label>
                     <CategoryPicker value={category} onChange={setCategory} />
                   </div>
                 </motion.div>
@@ -134,24 +172,24 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
                   exit={{ opacity: 0, x: 20 }}
                   className="space-y-6"
                 >
-                  <div className="space-y-2">
-                    <label className="block text-sm font-bold text-[#5d4037]/80">品牌 (选填)</label>
+                  <div className="space-y-3">
+                    <label className="block text-xs font-heading tracking-widest uppercase text-[rgba(218,165,32,0.8)]">品牌印记 (选填)</label>
                     <ParchmentInput
                       value={brand}
                       onChange={e => setBrand(e.target.value)}
                       placeholder="例如: Sony"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-bold text-[#5d4037]/80">入手日期 (选填)</label>
+                  <div className="space-y-3">
+                    <label className="block text-xs font-heading tracking-widest uppercase text-[rgba(218,165,32,0.8)]">入手纪元 (选填)</label>
                     <ParchmentInput
                       type="date"
                       value={purchasedAt}
                       onChange={e => setPurchasedAt(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-bold text-[#5d4037]/80">背后的故事 (选填)</label>
+                  <div className="space-y-3">
+                    <label className="block text-xs font-heading tracking-widest uppercase text-[rgba(218,165,32,0.8)]">背后的故事 (选填)</label>
                     <ParchmentTextArea
                       value={description}
                       onChange={e => setDescription(e.target.value)}
@@ -168,46 +206,47 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
                   exit={{ opacity: 0, x: 20 }}
                   className="space-y-6"
                 >
-                  <div className="space-y-2">
-                    <label className="block text-sm font-bold text-[#5d4037]/80">留个影 (选填)</label>
-                    <p className="text-xs text-[#5d4037]/60 mb-2">给它拍张照片，让回忆更生动</p>
+                  <div className="space-y-3">
+                    <label className="block text-xs font-heading tracking-widest uppercase text-[rgba(218,165,32,0.8)]">留存影像 (选填)</label>
+                    <p className="text-xs text-[rgba(240,226,200,0.5)] font-handwriting italic mb-4">"给它拍张照片，让回忆永远鲜活"</p>
                     <ImageUploader value={imageFile} onChange={setImageFile} />
                   </div>
                 </motion.div>
               )}
             </div>
 
-            <div className="flex justify-between items-center pt-4 border-t border-[#5d4037]/10">
+            <div className="modal-footer">
               {step > 1 ? (
                 <button
                   type="button"
                   onClick={handlePrev}
                   disabled={isSubmitting}
-                  className="px-4 py-2 text-sm font-bold text-[#5d4037]/70 hover:text-[#5d4037] transition-colors"
+                  className="btn-ghost"
                 >
-                  上一步
+                  回溯上一卷
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={onClose}
                   disabled={isSubmitting}
-                  className="px-4 py-2 text-sm font-bold text-[#5d4037]/70 hover:text-[#5d4037] transition-colors"
+                  className="btn-ghost"
                 >
-                  取消
+                  放弃封入
                 </button>
               )}
 
               {step < 3 ? (
-                <BrassButton onClick={handleNext} className="w-32">
-                  下一步
+                <BrassButton onClick={handleNext} className="min-w-[140px] shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                  揭开下一卷
                 </BrassButton>
               ) : (
-                <BrassButton onClick={handleSubmit} disabled={isSubmitting} className="w-32 bg-[#2e7d32]">
-                  {isSubmitting ? '封印中...' : '完成添加'}
+                <BrassButton onClick={handleSubmit} disabled={isSubmitting} className="min-w-[140px] shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                  {isSubmitting ? '正在施加封印...' : '完成铭刻'}
                 </BrassButton>
               )}
             </div>
+            </LeatherCard>
           </motion.div>
         </div>
       )}

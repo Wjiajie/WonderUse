@@ -82,3 +82,178 @@
   transform: scale(1.1);
   filter: drop-shadow(0 1px 2px rgba(62,39,35,0.4));
 }
+
+/* == Category Picker Grid == */
+.category-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+@media (min-width: 640px) {
+  .category-picker-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* == Category Button Base == */
+.category-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  transition: all var(--duration-normal) var(--ease-smooth);
+  cursor: pointer;
+  text-align: left;
+  border: 2px solid transparent;
+  background-color: transparent;
+}
+@media (min-width: 640px) {
+  .category-btn {
+    padding: var(--space-4);
+  }
+}
+
+/* Unselected State */
+.category-btn.unselected {
+  background-color: rgba(26, 16, 12, 0.8);
+  border-color: rgba(62, 39, 35, 0.5);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+.category-btn.unselected:hover {
+  background-color: rgba(34, 21, 15, 1);
+  border-color: rgba(93, 64, 55, 1);
+}
+
+/* Selected State */
+.category-btn.selected {
+  background: linear-gradient(135deg, #3e2723, #1a100c);
+  border-color: var(--color-gold);
+  box-shadow: 0 0 20px rgba(218,165,32,0.35), inset 0 2px 15px rgba(0,0,0,0.8);
+  z-index: 10;
+}
+
+/* Category Icon Badge */
+.category-icon-badge {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin-right: var(--space-4);
+  transition: all var(--duration-slow) var(--ease-smooth);
+}
+.category-btn.unselected .category-icon-badge {
+  background-color: #2d1b11;
+  border: 2px solid #4a3022;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+  color: #8c6b5d;
+}
+.category-btn.selected .category-icon-badge {
+  background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b 80%);
+  border: 2px solid rgba(255,223,0,0.9);
+  box-shadow: 0 0 15px rgba(255,215,0,0.5), inset 0 1px 3px rgba(255,255,255,0.8);
+  color: #2C1A12;
+}
+
+/* Category Text Content */
+.category-text-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.category-label {
+  font-family: var(--font-heading);
+  font-weight: bold;
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  transition: color var(--duration-normal) var(--ease-smooth);
+}
+@media (min-width: 640px) {
+  .category-label {
+    font-size: var(--text-base);
+  }
+}
+.category-btn.unselected .category-label {
+  color: #8c6b5d;
+}
+.category-btn.selected .category-label {
+  color: #FFD700;
+  filter: drop-shadow(0 0 8px rgba(255,215,0,0.6));
+}
+
+.category-desc {
+  font-size: 11px;
+  margin-top: 2px;
+  transition: color var(--duration-normal) var(--ease-smooth);
+}
+@media (min-width: 640px) {
+  .category-desc {
+    font-size: var(--text-xs);
+  }
+}
+.category-btn.unselected .category-desc {
+  color: #5d4037;
+}
+.category-btn.selected .category-desc {
+  color: #e6c27a;
+}
+
+/* Selected Indicator Rivet */
+.category-rivet {
+  position: absolute;
+  top: 50%;
+  right: var(--space-4);
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #FFD700;
+  box-shadow: 0 0 12px #FFD700, inset 0 1px 2px rgba(255,255,255,0.8);
+}
+
+/* Ambient Active Glow */
+.category-active-glow {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  border: 1px solid rgba(255,215,0,0.3);
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+}
+
+/* == Ghost / Secondary Button == */
+.btn-ghost {
+  cursor: pointer;
+  background-color: transparent;
+  border: 1px solid transparent;
+  padding: var(--space-2) var(--space-6);
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  letter-spacing: 0.05em;
+  color: rgba(240, 226, 200, 0.6);
+  border-radius: var(--radius-sm);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+.btn-ghost:hover {
+  color: var(--color-gold);
+  border-color: rgba(218, 165, 32, 0.3);
+}
+.btn-ghost:active {
+  background-color: rgba(218, 165, 32, 0.05);
+}
+
+
+/* == Modal Specific == */
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid rgba(218, 165, 32, 0.2);
+}
+

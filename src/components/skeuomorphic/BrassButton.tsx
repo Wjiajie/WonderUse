@@ -7,6 +7,7 @@ interface BrassButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
 
 export const BrassButton: React.FC<BrassButtonProps> = ({ 
   variant = 'primary', 
+  type = 'button',
   children, 
   className = '', 
   ...props 
