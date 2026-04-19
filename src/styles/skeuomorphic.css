@@ -247,7 +247,6 @@
 }
 
 
-/* == Modal Specific == */
 .modal-footer {
   display: flex;
   justify-content: space-between;
@@ -257,3 +256,333 @@
   border-top: 1px solid rgba(218, 165, 32, 0.2);
 }
 
+/* ══ 3D Wooden Cabinet UI (拟物化3D多宝阁) ══ */
+.cabinet-container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* Default to 2 columns on mobile */
+  gap: 6px; /* dividing lines between cubbies */
+  padding: 12px;
+  background-color: #4a2e1b; /* Dark wood base */
+  border: 16px solid #5c3a21; /* Thick outer frame */
+  border-radius: 8px;
+  box-shadow: 
+    0 25px 50px -12px rgba(0,0,0,0.6), /* Heavy drop shadow on wall */
+    inset 0 0 12px rgba(0,0,0,0.9); /* Inner shadow of the frame */
+  position: relative;
+  /* Wood texture for outer frame */
+  background-image: repeating-linear-gradient(
+    45deg,
+    #5c3a21,
+    #5c3a21 10px,
+    #4a2e1b 10px,
+    #4a2e1b 20px
+  );
+
+  /* 机械齿轮卷轴陈列架核心设定：固定视口滚动 */
+  max-height: calc(100vh - 280px); /* 动态适应屏幕高度，留出头部空间 */
+  overflow-y: auto;
+  
+  /* Firefox 优雅降级 */
+  scrollbar-width: thin; 
+  scrollbar-color: #b8860b #1a100c; 
+}
+
+/* Chrome/Safari 机械黄铜滚动条 */
+.cabinet-container::-webkit-scrollbar {
+  width: 20px; /* 较宽的轨道模拟机械槽 */
+  background: #1a100c;
+}
+
+.cabinet-container::-webkit-scrollbar-track {
+  /* 齿轮轨道防滑纹理 */
+  background: repeating-linear-gradient(
+    0deg,
+    #1a100c,
+    #1a100c 4px,
+    #110a08 4px,
+    #110a08 8px
+  );
+  border-left: 2px solid #3e2723;
+  box-shadow: inset 4px 0 8px rgba(0,0,0,0.9);
+}
+
+.cabinet-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #d4af37, #ffd700, #d4af37);
+  border: 2px solid #5c3a21;
+  border-radius: 3px;
+  /* 绘制黄铜表面防滑纹理 */
+  background-image: 
+    repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(0,0,0,0.2) 4px, rgba(0,0,0,0.2) 6px),
+    linear-gradient(to right, #b8860b, #ffd700, #b8860b);
+  box-shadow: 
+    inset 1px 1px 2px rgba(255,255,255,0.7),
+    inset -1px -1px 2px rgba(0,0,0,0.6),
+    -2px 0 4px rgba(0,0,0,0.8);
+}
+
+.cabinet-container::-webkit-scrollbar-thumb:hover {
+  background-image: 
+    repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(0,0,0,0.2) 4px, rgba(0,0,0,0.2) 6px),
+    linear-gradient(to right, #ffd700, #fff2a8, #ffd700);
+}
+
+/* 轨道上下两端的螺丝头效果 */
+.cabinet-container::-webkit-scrollbar-button:vertical:start:decrement,
+.cabinet-container::-webkit-scrollbar-button:vertical:end:increment {
+  display: block;
+  height: 20px;
+  background: linear-gradient(135deg, #5c3a21, #2c1a12);
+  border: 2px solid #1a100c;
+  box-shadow: inset 1px 1px 2px rgba(255,255,255,0.1);
+}
+
+
+@media (min-width: 640px) {
+  .cabinet-container {
+    grid-template-columns: repeat(4, minmax(0, 1fr)); /* 4 columns on desktop */
+  }
+}
+
+.cubby-hole {
+  position: relative;
+  aspect-ratio: 1 / 1.15; /* Slightly taller than wide */
+  background: #2a1b12; /* Very dark interior */
+  /* Intense 3D inset shadows to simulate depth */
+  box-shadow: 
+    inset 0 25px 35px rgba(0,0,0,0.95), /* Deep shadow from top shelf */
+    inset 0 -5px 15px rgba(255,255,255,0.03), /* Very faint bounce light on bottom */
+    inset 15px 0 25px rgba(0,0,0,0.85), /* Left side shadow */
+    inset -15px 0 25px rgba(0,0,0,0.85); /* Right side shadow */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 15px 10px 25px 10px; /* Extra bottom padding for label */
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+/* Wood grain for the deep back wall */
+.cubby-hole::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.3) 2px,
+    rgba(0,0,0,0.3) 4px
+  );
+  opacity: 0.4;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Cubby Bottom Board (where items sit) */
+.cubby-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 30%;
+  background: linear-gradient(to top, rgba(74,46,27,0.8), transparent);
+  z-index: 1;
+}
+
+/* Item Wrapper */
+.shelf-item-wrapper {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  transition: transform var(--duration-normal) var(--ease-bounce);
+  cursor: pointer;
+  height: 100%;
+  width: 100%;
+}
+
+.shelf-item-wrapper:hover {
+  transform: translateY(-6px) scale(1.05);
+}
+
+.shelf-item-image {
+  width: auto;
+  max-width: 80%;
+  height: auto;
+  max-height: 70%;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 15px rgba(0,0,0,0.8)); /* Heavy drop shadow projecting downwards */
+  transition: transform var(--duration-normal) var(--ease-smooth);
+  margin-bottom: 5%;
+}
+
+.shelf-item-placeholder {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #e8c9a0, #c89f6b);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  color: #5c3a21;
+  box-shadow: 
+    inset -2px -2px 6px rgba(0,0,0,0.2),
+    inset 2px 2px 6px rgba(255,255,255,0.4),
+    0 15px 15px rgba(0,0,0,0.6);
+  margin-bottom: 15px;
+}
+
+/* Brass Nameplate on the wood border */
+.shelf-item-label {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom, #d4af37, #b8860b);
+  padding: 2px 10px;
+  border-radius: 2px;
+  border: 1px solid #ffdf00;
+  box-shadow: 
+    0 4px 6px rgba(0,0,0,0.9),
+    inset 0 1px 1px rgba(255,255,255,0.6);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60%;
+  max-width: 90%;
+}
+
+/* Rivets on nameplate */
+.shelf-item-label::before,
+.shelf-item-label::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 3px;
+  background-color: #3e2723;
+  border-radius: 50%;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.5);
+}
+.shelf-item-label::before { left: 4px; }
+.shelf-item-label::after { right: 4px; }
+
+.shelf-item-name {
+  font-family: var(--font-handwriting-stack);
+  font-size: 11px;
+  color: #2c1a12; /* Dark engraved text */
+  font-weight: bold;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Add Item Pedestal ( Glowing Circle inside a cubby ) */
+.add-item-pedestal {
+  width: 60px;
+  height: 60px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all var(--duration-normal) var(--ease-bounce);
+  margin-bottom: 20px;
+}
+
+.add-item-pedestal::before {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  width: 50px;
+  height: 10px;
+  background: radial-gradient(ellipse at center, rgba(218,165,32,0.8) 0%, transparent 70%);
+  border-radius: 50%;
+  box-shadow: 0 0 25px rgba(218,165,32,0.6);
+  transition: all var(--duration-normal);
+}
+
+.add-item-pedestal:hover {
+  transform: translateY(-4px);
+}
+.add-item-pedestal:hover::before {
+  background: radial-gradient(ellipse at center, rgba(218,165,32,1) 0%, transparent 80%);
+  box-shadow: 0 0 35px rgba(218,165,32,0.8);
+}
+
+.add-item-icon {
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: var(--color-gold);
+  text-shadow: 0 0 15px rgba(218,165,32,0.9);
+  transition: transform var(--duration-normal);
+}
+.add-item-pedestal:hover .add-item-icon {
+  transform: rotate(90deg);
+}
+
+.add-item-text {
+  position: absolute;
+  bottom: -24px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  color: var(--color-brass);
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  white-space: nowrap;
+}
+
+/* 展架标签栏 */
+.shelf-tab-bar {
+  display: flex;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  margin-bottom: var(--space-6);
+  border-bottom: 2px solid #5c3a21;
+}
+
+.shelf-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(to bottom, #4a3022, #3e2723);
+  color: #a08477;
+  border: 1px solid #2c1a12;
+  border-bottom: none;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.05);
+  position: relative;
+}
+
+.shelf-tab:hover {
+  background: linear-gradient(to bottom, #5c3a21, #4a3022);
+  color: #dcc6a0;
+}
+
+.shelf-tab.active {
+  background: linear-gradient(to bottom, #dcc6a0, #c89f6b);
+  color: #3e2723;
+  border-color: #5c3a21;
+  font-weight: bold;
+  box-shadow: inset 0 2px 5px rgba(255,255,255,0.5), 0 -2px 10px rgba(0,0,0,0.1);
+  padding-bottom: calc(var(--space-2) + 2px);
+  margin-bottom: -2px; /* 盖住底部的线 */
+}
+
+.shelf-tab.active .tab-icon {
+  filter: drop-shadow(0 1px 1px rgba(255,255,255,0.5));
+}

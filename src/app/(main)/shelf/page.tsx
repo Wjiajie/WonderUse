@@ -24,12 +24,10 @@ interface Product {
 /* 骨架屏物品占位 */
 const SkeletonItem = ({ delay = 0 }: { delay?: number }) => (
   <div
-    className="skeleton"
+    className="skeleton shelf-item-placeholder"
     style={{
-      width: '100px',
-      height: '100px',
-      borderRadius: 'var(--radius-md)',
       animationDelay: `${delay}ms`,
+      marginBottom: '4px'
     }}
   />
 );
@@ -360,38 +358,57 @@ export default function ShelfPage() {
 
         {loading ? (
           /* 骨架屏 */
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-            {[0, 150, 300].map(delay => (
-              <SkeletonItem key={delay} delay={delay} />
+          <div className="cabinet-container w-full">
+            {Array.from({ length: 12 }).map((_, idx) => (
+              <div key={idx} className="cubby-hole">
+                <SkeletonItem delay={idx * 150} />
+              </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-            {/* 添加新物品按钮 */}
-            <div
-              id="add-item-btn"
-              onClick={() => setShowAddModal(true)}
-              className="texture-parchment relative w-full h-[180px] flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#5d4037]/30 cursor-pointer hover:border-[#b8860b] hover:bg-[#f0e2c8]/80 transition-all duration-300"
-              role="button"
-              aria-label="添加新物品"
-              tabIndex={0}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowAddModal(true); }}
-            >
-              <span className="text-4xl text-[#5d4037]/40 font-light mb-1">+</span>
-              <span className="text-sm text-[#5d4037]/60 font-heading">封入物品</span>
+          <div className="cabinet-container w-full">
+            {/* 固定的“封入物品”底座（放在第一个格子） */}
+            <div className="cubby-hole">
+              <div className="cubby-bottom" />
+              <div
+                className="add-item-pedestal"
+                onClick={() => setShowAddModal(true)}
+                role="button"
+                tabIndex={0}
+                aria-label="添加新物品"
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowAddModal(true); }}
+              >
+                <span className="add-item-icon">+</span>
+                <span className="add-item-text">封入物品</span>
+              </div>
             </div>
 
-            {/* 物品列表 */}
+            {/* 渲染物品 */}
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product, index) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
-                  index={index} 
-                  onClick={() => router.push(`/product/${product.id}`)} 
-                />
+                <div key={product.id} className="cubby-hole">
+                  <div className="cubby-bottom" />
+                  <ProductCard 
+                    product={product} 
+                    index={index} 
+                    onClick={() => router.push(`/product/${product.id}`)} 
+                  />
+                </div>
               ))}
             </AnimatePresence>
+
+            {/* 空槽补全逻辑：保证总格子数至少为12，且是4的倍数 */}
+            {(() => {
+              const totalOccupied = filteredProducts.length + 1; // 1 for the add button
+              const targetTotal = Math.max(12, Math.ceil(totalOccupied / 4) * 4);
+              const emptyCount = targetTotal - totalOccupied;
+              
+              return Array.from({ length: emptyCount }).map((_, idx) => (
+                <div key={`empty-${idx}`} className="cubby-hole">
+                  <div className="cubby-bottom" />
+                </div>
+              ));
+            })()}
           </div>
         )}
 
